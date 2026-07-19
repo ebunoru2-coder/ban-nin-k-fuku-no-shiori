@@ -1,0 +1,1142 @@
+import { useState, useEffect, useMemo } from "react";
+
+/* ============ データ：十七ヶ条 ============ */
+const KAN = ["一","二","三","四","五","六","七","八","九","十","十一","十二","十三","十四","十五","十六","十七"];
+
+const ARTICLES = [
+  {
+    yoji: "日々好日",
+    title: "今日は最良の一日、今は無二の好機",
+    teach: "今日は最良の一日、今は無二の好機。気づいた時が最好のチャンス。延ばすほど条件は悪くなる。思い立つ日が最上吉日。",
+    acts: [
+      "アラームが鳴ったら5秒以内に布団を出る",
+      "「あとでやろう」と思った瞬間、5秒以内に着手する",
+      "2分で終わる用事（返信・片づけ）はその場で処理する",
+      "気になっていたメールやLINEに今すぐ1通返信する",
+      "後回しにしていた小さな用事を1つ、午前中に片づける",
+      "「今度やろう」と言いかけたら「今やる」に言い換えて動く",
+      "思いついたアイデアはその場でメモし、最初の一歩を今日踏む",
+      "朝一番に今日の最重要タスクを決め、他より先に手を付ける",
+      "迷ったら「今しかない」と唱えて、先に体を動かす",
+      "寝る前に「今日いちばん、さっと動けたこと」を一行メモ",
+    ],
+  },
+  {
+    yoji: "苦難福門",
+    title: "苦難は幸福の門",
+    teach: "苦難は幸福に入る狭い門。生活のゆがみを知らせる危険信号である。にっこり笑って、エイと一声——正面から押し開けば、奥に光明と歓喜の世界が待っている。",
+    acts: [
+      "いま一番の困り事を1つ書き「何のサイン？」と原因を1つメモ",
+      "イヤな事が起きたら口角を上げ、心で「よし来た、エイ！」と言って対処",
+      "逃げている連絡・手続きに、1つだけ着手する",
+      "トラブルの時、ため息の代わりに「面白くなってきた」とつぶやく",
+      "苦手な人への挨拶を、自分から先にする",
+      "放置している謝罪やお礼を、今日ひとつ伝える",
+      "失敗したら「この失敗が教えてくれることは？」と1つ書く",
+      "体調・家計・人間関係の「困った」を1つ選び、改善の一歩を踏む",
+      "嫌な予定の日こそ、にっこり笑って玄関を出る",
+      "夜、「今日笑って向き合えた苦難」を一行記録",
+    ],
+  },
+  {
+    yoji: "運命自招",
+    title: "運命は自らまねき、境遇は自ら造る",
+    teach: "運命は自らまねき、境遇は自ら造る。チャンスの前髪は出会った瞬間につかめ。己が一切、努力がすべて。やれば出来る。",
+    acts: [
+      "「運が悪い」「どうせ」「〜のせい」を今日一日禁句にする",
+      "禁句を言いかけたら「自分に出来ることは？」に言い換える",
+      "誘い・依頼・ひらめきに10分以内に返事か着手する",
+      "今日の目標を1つ書き、最初の一歩を10分以内に実行する",
+      "沈んだ場に、自分から明るい第一声を入れる",
+      "人任せにしていた事を1つ、自分で決めて動く",
+      "「時間がない」と言う代わりに、5分だけやってみる",
+      "小さな積み上げ（読書2ページ・腕立て10回など）を1つ必ず積む",
+      "うまくいかない原因を、環境でなく自分の行動から1つ探す",
+      "夜、「今日つかんだチャンスの前髪」を一行記録",
+    ],
+  },
+  {
+    yoji: "万象我師",
+    title: "人は鏡、万象はわが師",
+    teach: "人は鏡、万象はわが師。相手はわが心を映す影像。ガラスを拭くな、自分の顔をぬぐえ。まず自ら改め、自分が変わればよい。",
+    acts: [
+      "あいさつを自分から先に、明るい声でする（山彦の実験）",
+      "イラッとしたら、相手でなく自分の声と表情を一段明るく切り替える",
+      "店員さんに自分から、目を見て「ありがとう」と言う",
+      "相手の欠点に気づいたら、自分の同じ癖を1つ探す",
+      "寝る前、「今日の師（人・物・自然・失敗）」を1つ一行メモ",
+      "通勤路の空や木を1つ、初めて見るつもりで30秒観察する",
+      "苦手な人の良いところを、1つ見つけてメモする",
+      "注意したくなったら、まず自分が手本を見せる",
+      "周りの機嫌は自分の鏡と考え、まず自分の態度を整える",
+      "今日出会う人すべてを「先生」と思い、一言ずつ学ぶ",
+    ],
+  },
+  {
+    yoji: "夫婦対鏡",
+    title: "夫婦は一対の反射鏡",
+    teach: "夫婦（最も身近な人）は向き合う一対の反射鏡。相手を直そうとするのは逆。ただ自分をみがけば、相手は必ず自然に改まる。",
+    acts: [
+      "朝と帰宅時のあいさつを、自分から先に目を見てする",
+      "「〇〇してくれてありがとう」と具体的に1回伝える",
+      "小言を言いたくなったら、心で「逆である」と3秒唱えてから話す",
+      "相手への不満に気づいたら、自分の同じ癖を1つ改める",
+      "相手の好きな飲み物やおやつを1つ用意する",
+      "相手の話を、スマホを置いて最後まで聞く",
+      "「ごめん」を自分から先に言う（勝ち負けを手放す）",
+      "相手がしてくれている家事や仕事を、1つ代わりにやる",
+      "楽しかった思い出を1つ、話題にする",
+      "夜、「今日、相手に映っていた自分」を一行記録",
+    ],
+  },
+  {
+    yoji: "子女名優",
+    title: "子は親の心を実演する名優である",
+    teach: "子（部下・後輩）は自分の心を実演する名優。家や職場はその舞台。竹林は風が止めば静まる——騒ぐ竹でなく、風（自分の心）を先に静めよ。",
+    acts: [
+      "相手の気になる行動に、叱る前3秒「私のどの心の実演？」と自問",
+      "注意の前に深呼吸1回。声を一段落ち着けてから話す",
+      "直してほしい事を、まず自分が黙ってやって見せる",
+      "家族やチームの前で、明るい会話の時間を5分つくる",
+      "「早くして」と言う代わりに、自分が先に動いて見せる",
+      "相手の良い行動を1つ見つけ、具体的に褒める",
+      "イライラを持ち込まない：ドアの前で深呼吸してから入る",
+      "命令形を1回、お願い形か質問形に言い換える",
+      "自分の口癖そっくりな相手の言葉に気づいたら、笑って自分を直す",
+      "夜、「今日、周りに映っていた私」を一行記録",
+    ],
+  },
+  {
+    yoji: "疾病信号",
+    title: "肉体は精神の象徴、病気は生活の赤信号",
+    teach: "肉体は心の象徴。不調は生活の無理を知らせる天の赤信号。恐れず、喜んで受けて間違いを直せば、体は自然に整う。（必要な受診は続けたうえで）",
+    acts: [
+      "朝30秒、頭→肩→胃→腰の順に体調スキャンし、サインを1つメモ",
+      "不調に「どの生活の無理のサイン？」と問い、原因候補を1つ書く",
+      "見つけた無理を1つだけ直す（30分早く寝る・腹八分など）",
+      "不調が出たら舌打ちでなく「教えてくれてありがとう」と言う",
+      "今夜はいつもより30分早く布団に入る",
+      "昼食を腹八分にして、ゆっくり噛んで食べる",
+      "1時間に1回、立ち上がって伸びをする",
+      "カフェイン・酒・甘い物のどれか1つを今日は控えめにする",
+      "10分だけ散歩か軽いストレッチをする",
+      "夜、「体のサイン→打った一手→体の反応」を一行記録",
+    ],
+  },
+  {
+    yoji: "明朗愛和",
+    title: "明朗は健康の父、愛和は幸福の母",
+    teach: "明朗は健康の父、愛和は幸福の母。愛は出すほど湧く母乳、汲まねば腐る井戸水。一分も心を曇らせず、親切を先に出せ。",
+    acts: [
+      "起きたらカーテンを開け「今日も明るく」と一声",
+      "鏡の前で口角を上げて10秒キープ",
+      "挨拶は名前つきで半トーン明るく、自分から先に",
+      "ため息・眉間のしわに気づいたら、水を一杯＋口角上げ（1分リセット）",
+      "見返りなしの親切を1つ先に出す（ドア押さえ・席ゆずり等）",
+      "沈んでいる人・輪の外の人に「最近どう？」と一声かける",
+      "帰宅の「ただいま」を明るく。家族に「お疲れさま」を1回",
+      "今日会った人に、お礼のLINEを1通送る",
+      "昼休みに1回、意識して声を出して笑う",
+      "夜、「今日いちばん明るかった瞬間」と「出した親切」を一行記録",
+    ],
+  },
+  {
+    yoji: "破約失福",
+    title: "約束を違えれば、己の幸を捨て他人の福を奪う",
+    teach: "約束を破れば、己の幸を捨て他人の福を奪う。自然の約束を守るように、人との約束・自分との約束を守る。まず時間を守ることから。",
+    acts: [
+      "今日のすべての予定に5分前行動。会議は1分前入室",
+      "「今度〜ね」の放置中の約束を1つ回収（実行か日程提案）",
+      "頼まれごとに即答せず、3秒「本当に守れるか」考えて返事",
+      "遅れそうと分かった瞬間に連絡＋謝罪＋代案",
+      "提出物・返信を、期限より前に1つ出す",
+      "今夜の就寝時刻を朝決めて守る（自分との約束）",
+      "口にした約束を、その場でスマホにメモする",
+      "無理な依頼は曖昧にせず、期限か条件を交渉して受ける",
+      "借りている物があれば今日返す（または返す日を伝える）",
+      "夜、守れた約束・守れなかった約束を一行記録",
+    ],
+  },
+  {
+    yoji: "勤労歓喜",
+    title: "働きは最上の喜び",
+    teach: "働きは最上の喜び。ま心で働けば喜びがわき、給与は天の割増金。職業に上下貴賤なし。只今の仕事の尊さを悟って命がけで働く時、最高至上の歓喜がある。",
+    acts: [
+      "仕事始めに「今日も働ける、ありがたい」と一言",
+      "一番いやな仕事を午前に持ってきて、15分だけ全集中",
+      "見返りを考えたら「まず目の前をま心で」と唱えて手を動かす",
+      "作業後の「ふー、やった」の小さな達成感を意識して味わう",
+      "「この仕事は誰の役に立つか」を1つ書いてから取りかかる",
+      "頼まれ仕事を1つ、期待の一段上の丁寧さで仕上げる",
+      "家事を1つ「喜んで」やる（鼻歌OK）",
+      "だらだら休憩をやめ、働く時は働く・休む時は休むを区切る",
+      "「つまらない仕事」と言いかけたら「意味は自分がつける」と言い換える",
+      "夜、「今日いちばん気持ちよかった働き」を一行記録",
+    ],
+  },
+  {
+    yoji: "万物生々",
+    title: "物はこれを生かす人に集まる",
+    teach: "物はすべて生きている。愛する人に産まれ、大切にする人のために働き、生かす人に集まる。たらいの水は押せば返る。",
+    acts: [
+      "靴を10秒拭いてから履く",
+      "財布を整える（レシートを出し、札の向きをそろえる）",
+      "仕事前にPCの画面と机をひと拭きしてから始める",
+      "借りた物・共用物を、借りた時よりきれいにして返す",
+      "支払いの時、心の中で「ありがとう」と気持ちよく払う",
+      "使った物はその場で元の位置に戻す（3秒ルール）",
+      "今日一番働いた道具を1つ、手入れしてからしまう",
+      "使っていない物を1つ手放すか、小さな修繕を1つする",
+      "惰性の出費を1つやめ、価値ある出費を1つ喜んで払う",
+      "道具をしまう時、心の中で「ありがとう」と一言",
+    ],
+  },
+  {
+    yoji: "捨我得全",
+    title: "得るは捨つるにあり",
+    teach: "得るは捨つるにあり。粘り抜いて、それでも詰んだら、恐れ・未練・意地をきれいさっぱり捨て、運を天に任せる。窮すれば通ず。",
+    acts: [
+      "送信・提出したら「あとは天に任せる」と唱え、結果チェックをやめる",
+      "議論で勝ちたくなったら「そうかもしれませんね」と一度譲る",
+      "磨きすぎている資料を、今日80点で出す",
+      "褒められたら「〇〇さんのおかげです」と手柄を1つ譲る",
+      "人のやり方に口を出さず、黙って任せ切る",
+      "心配事を紙に書き「捨てた！」と破って捨てる",
+      "うまくいかない事はやり方を変えて3回まで。ダメなら潔く手放す",
+      "失敗を「尊い月謝」と書き、学びを一行添える",
+      "意地で握っている案件・こだわりから、今日1つ降りる",
+      "布団で考え事が始まったら「明日の自分に任せる」と唱えて寝る",
+    ],
+  },
+  {
+    yoji: "反始慎終",
+    title: "本を忘れず、末を乱さず",
+    teach: "本を忘れず、末を乱さず。初心と恩（命の根元＝親）を忘れず、あと始末で締めくくる。終始一貫が成功の秘訣。",
+    acts: [
+      "朝、今の仕事や家庭を始めた日の気持ちを30秒思い出す",
+      "親に連絡を1本（LINE1行でOK。亡き親には心の中で近況報告）",
+      "「いただきます」を、作った人・育てた人を3秒思ってから言う",
+      "靴を脱いだらそろえる。席を立つ時、椅子を入れる",
+      "使った物はその場で元の位置へ（「あとで」を今日は禁止）",
+      "終業5分前に机をリセットし、明日の一番手をメモして帰る",
+      "トイレ・洗面台を、次の人のために10秒整えて出る",
+      "寝る前にシンクを空にする、または明日の服を出しておく",
+      "七八分で止まっている案件の、最後の二三分を今日詰める",
+      "布団で「今日も一日ありがとうございました」と締める",
+    ],
+  },
+  {
+    yoji: "心即太陽",
+    title: "希望は心の太陽である",
+    teach: "希望は心の太陽。日が出たから夜が明ける——希望が先、結果は後。望みをなくすから崩れる。不調は伸びる前のふんばりである。",
+    acts: [
+      "カーテンを開けて「今日はよくなる」と先に宣言する",
+      "「今日いちばん楽しみな瞬間」を1つ決めて出発する",
+      "停滞・失敗したら3秒「ふんばり中」とつぶやいて対処に入る",
+      "「どうせ」「無理」と言ったら「必ず明日がくる」で上書き",
+      "夕方の疲れは「夜が来ただけ」と受けて、堂々と休む",
+      "会議や食卓で、最初の明るい一言役を1回引き受ける",
+      "沈んでいる人に「伸びる前のふんばりでは」と希望を1つ贈る",
+      "今の希望を1つ、数字入りの目標に書き直す（燈を太くする）",
+      "その目標を1人に宣言する（燈を高く掲げる）",
+      "寝る前、「明日の楽しみ」を1行書いて休む",
+    ],
+  },
+  {
+    yoji: "信成万事",
+    title: "信ずれば成り、憂えれば崩れる",
+    teach: "信ずれば成り、憂えれば崩れる。形ではまだでも、心ではもう出来上っている。信は力なり。憂えるの反対は、喜ぶこと・信ずること。",
+    acts: [
+      "着手前に完成の瞬間を10秒イメージし「きっと出来るぞ」と一言",
+      "不安な仕事ほど、直前に5分リハーサル（練習＝信念づくり）",
+      "保留中の件を1つ「こうしよう」と決めて口に出す",
+      "任せた仕事に口出しせず「信じてる、任せた」と伝える",
+      "家族・後輩の報告を、まず疑わず「そうか、わかった」と受ける",
+      "同じ心配の2周目に気づいたら、対策を1つ書いて心配終了",
+      "寝る前、「〇〇はうまくいった」と完了形で1行書く",
+      "「私にはできない」を「まだ慣れていないだけ」と言い換える",
+      "陰口や疑いの話には乗らず、良い面を1つ口にする",
+      "今日の自分を1つ信じて褒める（「自分ならやれる」）",
+    ],
+  },
+  {
+    yoji: "尊己及人",
+    title: "己を尊び人に及ぼす",
+    teach: "己は世界にたった一つの宝。しまい込むな、すり減らすな、磨いて差し出せ。己を尊ぶの極は、ささげるにある——人の喜びがわが喜びとなる。",
+    acts: [
+      "朝、鏡の自分に「世界に一つの宝」と一言、姿勢を正す",
+      "今夜の就寝時刻を朝のうちに決める（宝の手入れ）",
+      "「宝を粗末にしてないか？」と1回自問（夜ふかし・我慢しすぎ等）",
+      "怒り・ねたみが湧いたら「宝を傷つけるな」＋深呼吸1回",
+      "強み・得意を磨く時間を15分とる",
+      "磨いた強みを1回、人のために使う",
+      "人の吉報を、自分事の声量で「よかったね！」と喜ぶ",
+      "ねたみが湧いたら「それも私の喜び」と祝福に変換する",
+      "助言の前に「それはつらいね」と一度受け止める",
+      "バレない善行を1つ（バレたら失敗ゲーム）",
+    ],
+  },
+  {
+    yoji: "人生神劇",
+    title: "人生は神の演劇、その主役は己自身である",
+    teach: "人生は幕切れなしの大演劇、主役は己自身。演出のルールはこの十七ヶ条。観客がいてもいなくても、どの場面も演じ切る。拍手のために演じるな。",
+    acts: [
+      "朝、「今日もこの舞台の主役は自分」と一言",
+      "誰も見ていない場面こそ、いつも通りちゃんとやる",
+      "褒められたら「拍手のためじゃない」と一言ブレーキ",
+      "ドアをくぐるたび「次の場面」と気分を切り替える",
+      "帰宅時、仕事のイライラを玄関に置いてから入る",
+      "修羅場が来たら「見せ場が来た」と3秒つぶやく",
+      "イラッとする相手には「今は観劇」と一歩引いて眺める",
+      "映画やドラマから、自分の演技のヒントを1つ拾う",
+      "家での役（親・子・パートナー）を今日1場面、丁寧に演じる",
+      "夜10秒「今日の演技に監督は何点？」→明日やり直せばOK",
+    ],
+  },
+];
+
+/* ============ 配色・書体 ============ */
+const C = {
+  paper: "#F5EFDF",
+  card: "#FCF8EC",
+  ink: "#2B261E",
+  sub: "#7A6E58",
+  line: "#E3D8BE",
+  shu: "#B23A2A",
+  shuDark: "#8E2C1F",
+  gold: "#A9812F",
+};
+
+/* ============ ユーティリティ ============ */
+const dayNum = (d = new Date()) =>
+  Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000);
+
+const dateKey = (d = new Date()) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+};
+
+const WD = ["日", "月", "火", "水", "木", "金", "土"];
+const fmtDate = (d = new Date()) =>
+  `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${WD[d.getDay()]}）`;
+
+const STORE_KEY = "shiori-v2";
+/* 暦の基準日（この日＝第一条）。保存が使えない環境でも毎日必ず次の条へ進む */
+const ANCHOR = Math.floor(Date.UTC(2026, 6, 14) / 86400000); // 2026-07-14
+const DEFAULT_DATA = { start: ANCHOR, log: {} };
+
+const keyFromDayNum = (n) => {
+  const ms = n * 86400000;
+  const dd = new Date(ms + new Date(ms).getTimezoneOffset() * 60000);
+  return dateKey(dd);
+};
+
+/* ---- 保存アダプタ：使える方式を自動選択（端末→アカウント→一時） ---- */
+async function detectBackend() {
+  try {
+    const k = "shiori-probe";
+    window.localStorage.setItem(k, "1");
+    window.localStorage.removeItem(k);
+    return "local"; // 公開URL・ホーム画面版：この端末に保存
+  } catch (e) {}
+  try {
+    if (window.storage) {
+      await window.storage.set("shiori-probe", "1");
+      try {
+        await window.storage.delete("shiori-probe");
+      } catch (e2) {}
+      return "account"; // Claudeアプリ内：アカウントに保存
+    }
+  } catch (e) {}
+  return "memory";
+}
+
+async function readStore(be) {
+  try {
+    if (be === "local") return window.localStorage.getItem(STORE_KEY);
+    if (be === "account") {
+      const r = await window.storage.get(STORE_KEY);
+      return r && r.value ? r.value : null;
+    }
+  } catch (e) {}
+  return null;
+}
+
+async function writeStore(be, str) {
+  if (be === "local") {
+    window.localStorage.setItem(STORE_KEY, str);
+    return;
+  }
+  if (be === "account") {
+    await window.storage.set(STORE_KEY, str);
+    return;
+  }
+  throw new Error("memory-only");
+}
+
+/* ============ 小さな部品 ============ */
+function Hanko({ n, done }) {
+  return (
+    <div className="relative shrink-0" style={{ width: 56, height: 56 }}>
+      <div
+        className="w-full h-full flex items-center justify-center select-none"
+        style={{
+          background: C.shu,
+          color: "#FBF3E4",
+          transform: "rotate(-2deg)",
+          borderRadius: 6,
+          boxShadow: "inset 0 0 0 2px rgba(251,243,228,.55), 0 1px 0 rgba(0,0,0,.15)",
+          fontFamily: "'Shippori Mincho', serif",
+          fontWeight: 700,
+          fontSize: n.length > 1 ? 18 : 26,
+          lineHeight: 1,
+          letterSpacing: n.length > 1 ? 1 : 0,
+        }}
+      >
+        {n}
+      </div>
+      {done && (
+        <div
+          className="absolute -right-2 -bottom-2 flex items-center justify-center stampIn"
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: "50%",
+            border: `2px solid ${C.gold}`,
+            color: C.gold,
+            background: "rgba(252,248,236,.9)",
+            fontFamily: "'Shippori Mincho', serif",
+            fontWeight: 700,
+            fontSize: 14,
+            transform: "rotate(8deg)",
+          }}
+        >
+          済
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Band({ label, children, accent }) {
+  return (
+    <div
+      className="rounded-md px-4 py-3"
+      style={{
+        background: C.card,
+        border: `1px solid ${C.line}`,
+        borderLeft: `4px solid ${accent ? C.shu : C.line}`,
+      }}
+    >
+      <div
+        className="mb-1 text-xs tracking-widest"
+        style={{ color: accent ? C.shu : C.sub, fontWeight: 700 }}
+      >
+        ■ {label}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/* ============ 本体 ============ */
+export default function App() {
+  const [tab, setTab] = useState("today");
+  const [data, setData] = useState(DEFAULT_DATA);
+  const [loaded, setLoaded] = useState(false);
+  const [persistOk, setPersistOk] = useState(true);
+  const [backend, setBackend] = useState("memory");
+  const [ioText, setIoText] = useState("");
+  const [ioMsg, setIoMsg] = useState("");
+  const [today, setToday] = useState(dayNum());
+  const [noteDraft, setNoteDraft] = useState("");
+  const [noteSaved, setNoteSaved] = useState(false);
+  const [showAlt, setShowAlt] = useState(false);
+  const [openArt, setOpenArt] = useState(null);
+  const [confirmReset, setConfirmReset] = useState(false);
+
+  /* --- 読み込み（保存方式を自動選択：端末→アカウント→一時） --- */
+  useEffect(() => {
+    (async () => {
+      const be = await detectBackend();
+      setBackend(be);
+      let d = be === "memory" ? { ...DEFAULT_DATA } : { ...DEFAULT_DATA, start: dayNum() };
+      try {
+        const raw = await readStore(be);
+        if (raw) {
+          const p = JSON.parse(raw);
+          if (p && typeof p.start === "number") d = { start: p.start, log: p.log || {} };
+        } else if (be !== "memory") {
+          await writeStore(be, JSON.stringify(d));
+        }
+      } catch (e) {
+        /* 読み書き不可でも暦基準で動作する */
+      }
+      if (be === "memory") setPersistOk(false);
+      setData(d);
+      setLoaded(true);
+    })();
+  }, []);
+
+  /* --- 午前0時の自動切り替え（複数経路で確実に） --- */
+  useEffect(() => {
+    const refresh = () => {
+      const n = dayNum();
+      setToday((prev) => {
+        if (n !== prev) {
+          setNoteDraft("");
+          setNoteSaved(false);
+          setShowAlt(false);
+          return n;
+        }
+        return prev;
+      });
+    };
+    const iv = setInterval(refresh, 15000); // 開きっぱなしでも15秒以内に反映
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 2);
+    const to = setTimeout(refresh, Math.max(1000, next.getTime() - now.getTime())); // 0時ちょうど
+    const onVis = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", refresh);
+    window.addEventListener("pageshow", refresh);
+    return () => {
+      clearInterval(iv);
+      clearTimeout(to);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("pageshow", refresh);
+    };
+  }, [today]);
+
+  /* --- 今日の算出 --- */
+  const calc = useMemo(() => {
+    const start = typeof data.start === "number" ? data.start : ANCHOR;
+    const off = Math.max(0, today - start);
+    const aIdx = off % 17;
+    const cycle = Math.floor(off / 17) + 1;
+    const baseAct = (cycle - 1) % 10;
+    return { off, aIdx, cycle, baseAct };
+  }, [data.start, today]);
+
+  const tKey = keyFromDayNum(today);
+  const entry = data.log[tKey] || {};
+  const art = ARTICLES[calc.aIdx];
+  const actIdx = typeof entry.ov === "number" ? entry.ov : calc.baseAct;
+
+  useEffect(() => {
+    setNoteDraft(entry.note || "");
+  }, [tKey, loaded]); // eslint-disable-line
+
+  /* --- 保存 --- */
+  const persist = async (next) => {
+    setData(next);
+    try {
+      await writeStore(backend, JSON.stringify(next));
+      setPersistOk(true);
+    } catch (e) {
+      setPersistOk(false);
+    }
+  };
+
+  const patchToday = (patch) => {
+    const cur = data.log[tKey] || {};
+    const draft = (noteDraft || "").trim();
+    const nextEntry = {
+      ...cur,
+      a: calc.aIdx,
+      act: actIdx,
+      ...(draft ? { note: draft } : {}),
+      ...patch,
+    };
+    persist({ ...data, log: { ...data.log, [tKey]: nextEntry } });
+  };
+
+  const retryStorage = async () => {
+    const be = await detectBackend();
+    setBackend(be);
+    try {
+      await writeStore(be, JSON.stringify(data));
+      setPersistOk(true);
+    } catch (e) {
+      setPersistOk(false);
+    }
+  };
+
+  const exportData = () => {
+    setIoText(JSON.stringify(data));
+    setIoMsg("書き出しました。全文をコピーして保管してください。");
+  };
+  const importData = () => {
+    try {
+      const p = JSON.parse(ioText);
+      if (!p || typeof p.start !== "number" || typeof p.log !== "object") throw new Error("bad");
+      persist({ start: p.start, log: p.log || {} });
+      setIoMsg("取り込みました ✓");
+    } catch (e) {
+      setIoMsg("形式が正しくありません。書き出した文字列をそのまま貼り付けてください。");
+    }
+  };
+
+  const toggleDone = () => patchToday({ done: !entry.done });
+  const saveNote = () => {
+    patchToday({ note: noteDraft.trim() });
+    setNoteSaved(true);
+    setTimeout(() => setNoteSaved(false), 1500);
+  };
+  const chooseAlt = (i) => {
+    patchToday({ ov: i, act: i });
+    setShowAlt(false);
+  };
+  const resetCycle = () => {
+    persist({ ...data, start: today });
+    setConfirmReset(false);
+    setTab("today");
+  };
+
+  /* --- 記録集計 --- */
+  const stats = useMemo(() => {
+    const log = data.log || {};
+    let streak = 0;
+    for (let d = today; d > today - 4000; d--) {
+      const k = keyFromDayNum(d);
+      if (log[k] && log[k].done) streak++;
+      else break;
+    }
+    const total = Object.values(log).filter((e) => e && e.done).length;
+    const items = Object.entries(log)
+      .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+      .slice(0, 30);
+    return { streak, total, items };
+  }, [data.log, today]);
+
+  /* --- 画面 --- */
+  const font = (
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
+      .mincho{font-family:'Shippori Mincho',serif}
+      .goth{font-family:'Zen Kaku Gothic New',sans-serif}
+      .stampIn{animation:stamp .35s cubic-bezier(.2,1.6,.4,1) both}
+      @keyframes stamp{from{transform:scale(2) rotate(8deg);opacity:0}to{transform:scale(1) rotate(8deg);opacity:1}}
+      @media (prefers-reduced-motion: reduce){.stampIn{animation:none}}
+      textarea:focus,button:focus-visible{outline:2px solid ${C.shu};outline-offset:2px}
+    `}</style>
+  );
+
+  if (!loaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center goth" style={{ background: C.paper, color: C.sub }}>
+        {font}
+        <div className="text-sm tracking-widest">栞を開いています…</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen goth" style={{ background: C.paper, color: C.ink }}>
+      {font}
+
+      {/* ヘッダー */}
+      <header
+        className="px-5 pt-5 pb-3 flex items-end justify-between"
+        style={{ borderBottom: `1px solid ${C.line}` }}
+      >
+        <div>
+          <div className="text-xs tracking-widest" style={{ color: C.sub }}>
+            万人幸福の栞 ・ 日々実践
+          </div>
+          <div className="mincho text-lg font-semibold tracking-wide">十七ヶ条</div>
+        </div>
+        <div className="text-right text-xs" style={{ color: C.sub }}>
+          {fmtDate()}
+          <br />
+          {calc.cycle}周目・{calc.aIdx + 1}日目
+        </div>
+      </header>
+
+      <main className="px-4 pb-28 pt-4 max-w-md mx-auto">
+        {/* ============ 今日 ============ */}
+        {tab === "today" && (
+          <div className="space-y-4">
+            {/* 条タイトル */}
+            <div
+              className="rounded-md p-4 flex gap-4 items-stretch"
+              style={{ background: C.card, border: `1px solid ${C.line}` }}
+            >
+              <Hanko n={KAN[calc.aIdx]} done={!!entry.done} />
+              <div className="flex-1 min-w-0">
+                <div className="text-xs tracking-widest" style={{ color: C.sub }}>
+                  第{KAN[calc.aIdx]}条 ─ {art.yoji}
+                </div>
+                <div className="mincho text-lg font-semibold leading-snug mt-1">
+                  {art.title}
+                </div>
+              </div>
+              <div
+                className="mincho shrink-0 text-sm font-semibold pl-3"
+                style={{
+                  writingMode: "vertical-rl",
+                  color: C.shu,
+                  borderLeft: `1px solid ${C.line}`,
+                  letterSpacing: 4,
+                }}
+              >
+                {art.yoji}
+              </div>
+            </div>
+
+            {/* 教え */}
+            <Band label="本日の教え">
+              <p className="text-sm leading-relaxed">{art.teach}</p>
+            </Band>
+
+            {/* アクション */}
+            <Band label="今日のアクション" accent>
+              <p className="mincho text-base font-semibold leading-relaxed">
+                {art.acts[actIdx]}
+              </p>
+
+              <button
+                onClick={toggleDone}
+                className="mt-3 w-full py-3 rounded-md text-sm font-bold tracking-widest transition-colors"
+                style={
+                  entry.done
+                    ? { background: "transparent", color: C.gold, border: `1.5px solid ${C.gold}` }
+                    : { background: C.shu, color: "#FBF3E4", border: `1.5px solid ${C.shuDark}` }
+                }
+              >
+                {entry.done ? "✓ 実践できた（取り消す）" : "実践できた！"}
+              </button>
+
+              <button
+                onClick={() => setShowAlt((v) => !v)}
+                className="mt-2 w-full text-xs py-1"
+                style={{ color: C.sub }}
+              >
+                {showAlt ? "▲ 閉じる" : "▼ 他のアクションから選ぶ"}
+              </button>
+
+              {showAlt && (
+                <ul className="mt-1 space-y-1">
+                  {art.acts.map((a, i) => (
+                    <li key={i}>
+                      <button
+                        onClick={() => chooseAlt(i)}
+                        className="w-full text-left text-xs px-3 py-2 rounded"
+                        style={{
+                          background: i === actIdx ? "rgba(178,58,42,.08)" : "transparent",
+                          border: `1px solid ${i === actIdx ? C.shu : C.line}`,
+                          color: C.ink,
+                        }}
+                      >
+                        <span style={{ color: C.shu, fontWeight: 700 }}>{i + 1}．</span>
+                        {a}
+                        {i === actIdx && (
+                          <span className="ml-1 text-[10px]" style={{ color: C.shu }}>
+                            （本日）
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Band>
+
+            {/* 一行メモ */}
+            <Band label="一行実践メモ">
+              <textarea
+                value={noteDraft}
+                onChange={(e) => setNoteDraft(e.target.value)}
+                onBlur={saveNote}
+                rows={2}
+                placeholder="今日の気づき・出来た瞬間をひとこと"
+                className="w-full text-sm p-2 rounded resize-none"
+                style={{ background: C.paper, border: `1px solid ${C.line}`, color: C.ink }}
+              />
+              <div className="flex items-center gap-3 mt-2">
+                <button
+                  onClick={saveNote}
+                  className="px-4 py-1.5 rounded text-xs font-bold tracking-widest"
+                  style={{ background: C.ink, color: C.paper }}
+                >
+                  保存
+                </button>
+                {noteSaved ? (
+                  <span className="text-xs" style={{ color: C.gold }}>
+                    保存しました ✓
+                  </span>
+                ) : (
+                  <span className="text-[10px]" style={{ color: C.sub }}>
+                    欄の外をタップでも自動保存
+                  </span>
+                )}
+              </div>
+            </Band>
+
+            {/* 17日の歩み */}
+            <div className="pt-1">
+              <div className="text-[10px] tracking-widest mb-1" style={{ color: C.sub }}>
+                十七日のあゆみ（{calc.cycle}周目）
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {ARTICLES.map((_, i) => (
+                  <div
+                    key={i}
+                    title={`第${KAN[i]}条`}
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      background:
+                        i < calc.aIdx ? C.gold : i === calc.aIdx ? C.shu : "transparent",
+                      border: `1.5px solid ${i === calc.aIdx ? C.shu : C.line}`,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {!persistOk && (
+              <div
+                className="text-[11px] rounded px-3 py-2 flex items-center justify-between gap-2"
+                style={{ color: C.shu, border: `1px dashed ${C.shu}` }}
+              >
+                <span>記録を保存できませんでした（電波や環境の一時的な問題の可能性）</span>
+                <button
+                  onClick={retryStorage}
+                  className="shrink-0 px-2 py-1 rounded font-bold"
+                  style={{ border: `1px solid ${C.shu}` }}
+                >
+                  再試行
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ============ 十七条一覧 ============ */}
+        {tab === "list" && (
+          <div className="space-y-2">
+            {ARTICLES.map((a, i) => {
+              const open = openArt === i;
+              const isToday = i === calc.aIdx;
+              return (
+                <div
+                  key={i}
+                  className="rounded-md overflow-hidden"
+                  style={{
+                    background: C.card,
+                    border: `1px solid ${isToday ? C.shu : C.line}`,
+                  }}
+                >
+                  <button
+                    onClick={() => setOpenArt(open ? null : i)}
+                    className="w-full flex items-center gap-3 px-3 py-3 text-left"
+                  >
+                    <span
+                      className="mincho shrink-0 flex items-center justify-center font-bold"
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 4,
+                        background: isToday ? C.shu : "transparent",
+                        color: isToday ? "#FBF3E4" : C.shu,
+                        border: `1.5px solid ${C.shu}`,
+                        fontSize: KAN[i].length > 1 ? 11 : 15,
+                      }}
+                    >
+                      {KAN[i]}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-[10px] tracking-widest" style={{ color: C.sub }}>
+                        {a.yoji}
+                        {isToday && (
+                          <span className="ml-2" style={{ color: C.shu, fontWeight: 700 }}>
+                            本日
+                          </span>
+                        )}
+                      </span>
+                      <span className="mincho block text-sm font-semibold leading-snug truncate">
+                        {a.title}
+                      </span>
+                    </span>
+                    <span style={{ color: C.sub }}>{open ? "－" : "＋"}</span>
+                  </button>
+
+                  {open && (
+                    <div className="px-3 pb-4" style={{ borderTop: `1px dashed ${C.line}` }}>
+                      <p className="text-xs leading-relaxed mt-3 mb-3" style={{ color: C.ink }}>
+                        {a.teach}
+                      </p>
+                      <div className="text-[10px] tracking-widest mb-1" style={{ color: C.sub }}>
+                        ■ アクション十選
+                      </div>
+                      <ol className="space-y-1.5">
+                        {a.acts.map((ac, j) => (
+                          <li key={j} className="text-xs leading-relaxed flex gap-1.5">
+                            <span className="shrink-0 font-bold" style={{ color: C.shu }}>
+                              {j + 1}．
+                            </span>
+                            <span>{ac}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ============ 記録 ============ */}
+        {tab === "log" && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { l: "連続", v: stats.streak, u: "日" },
+                { l: "累計実践", v: stats.total, u: "日" },
+                { l: "現在", v: calc.cycle, u: "周目" },
+              ].map((s, i) => (
+                <div
+                  key={i}
+                  className="rounded-md py-3 text-center"
+                  style={{ background: C.card, border: `1px solid ${C.line}` }}
+                >
+                  <div className="text-[10px] tracking-widest" style={{ color: C.sub }}>
+                    {s.l}
+                  </div>
+                  <div className="mincho text-2xl font-bold" style={{ color: C.shu }}>
+                    {s.v}
+                    <span className="text-xs ml-0.5" style={{ color: C.sub }}>
+                      {s.u}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <div className="text-[10px] tracking-widest mb-2" style={{ color: C.sub }}>
+                ■ 実践のあと（直近30日）
+              </div>
+              {stats.items.length === 0 && (
+                <p className="text-xs" style={{ color: C.sub }}>
+                  まだ記録がありません。今日のアクションを実践して「実践できた！」を押しましょう。
+                </p>
+              )}
+              <ul className="space-y-2">
+                {stats.items.map(([k, e]) => {
+                  const a = ARTICLES[e.a ?? 0];
+                  return (
+                    <li
+                      key={k}
+                      className="rounded-md px-3 py-2.5"
+                      style={{ background: C.card, border: `1px solid ${C.line}` }}
+                    >
+                      <div className="flex items-center gap-2 text-xs">
+                        <span
+                          className="mincho font-bold"
+                          style={{ color: e.done ? C.gold : C.line }}
+                        >
+                          {e.done ? "済" : "・"}
+                        </span>
+                        <span style={{ color: C.sub }}>{k}</span>
+                        <span className="mincho font-semibold" style={{ color: C.shu }}>
+                          {a ? a.yoji : ""}
+                        </span>
+                      </div>
+                      {typeof e.act === "number" && a && (
+                        <div className="text-xs mt-1 leading-relaxed">{a.acts[e.act]}</div>
+                      )}
+                      {e.note && (
+                        <div
+                          className="text-xs mt-1 pl-2"
+                          style={{ color: C.sub, borderLeft: `2px solid ${C.line}` }}
+                        >
+                          {e.note}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* ============ 設定 ============ */}
+        {tab === "set" && (
+          <div className="space-y-4">
+            <Band label="ホーム画面に追加する">
+              <div className="text-xs leading-relaxed space-y-2">
+                <p>
+                  claude.ai のページを直接「ホーム画面に追加」すると、開くたびに
+                  <b>Claudeのトップ画面</b>が表示される仕様です。確実にこのアプリを開くには、
+                  <b>ショートカットApp経由</b>で追加してください。
+                </p>
+                <p>
+                  <b>iPhoneの手順</b>：
+                  <br />① Safariでこのアプリの公開ページを開き、アドレスバーを長押しして
+                  <b>URLをコピー</b>
+                  <br />② 「ショートカット」Appを開き「＋」→「アクションを追加」→
+                  <b>「URLを開く」</b>を検索して選び、コピーしたURLを貼り付け
+                  <br />③ 上部の名前を「万人幸福の栞」に変更 → 共有ボタン →
+                  <b>「ホーム画面に追加」</b>
+                </p>
+                <p>
+                  <b>Android</b>：Chromeで公開ページを開き「⋮」→「ホーム画面に追加」。トップ画面に飛ぶ場合は、URLショートカット作成系のウィジェットをご利用ください。
+                </p>
+                <p style={{ color: C.sub }}>
+                  ログインしていなくても、記録はこの端末のブラウザ内に保存されます（下の「保存について」参照）。
+                </p>
+              </div>
+            </Band>
+
+            <Band label="サイクル">
+              <p className="text-xs leading-relaxed mb-3">
+                現在：{calc.cycle}周目・第{KAN[calc.aIdx]}条（{calc.aIdx + 1}
+                /17日目）。毎日午前0時に自動で次の条へ進みます（開いたままでも約15秒以内、開き直した瞬間にも反映）。周回ごとにアクションも入れ替わります（10種×10周で一巡）。
+              </p>
+              {!confirmReset ? (
+                <button
+                  onClick={() => setConfirmReset(true)}
+                  className="px-4 py-2 rounded text-xs font-bold tracking-widest"
+                  style={{ border: `1.5px solid ${C.shu}`, color: C.shu }}
+                >
+                  今日を第一条にリセット
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={resetCycle}
+                    className="px-4 py-2 rounded text-xs font-bold tracking-widest"
+                    style={{ background: C.shu, color: "#FBF3E4" }}
+                  >
+                    リセットする
+                  </button>
+                  <button
+                    onClick={() => setConfirmReset(false)}
+                    className="px-4 py-2 rounded text-xs"
+                    style={{ border: `1px solid ${C.line}`, color: C.sub }}
+                  >
+                    やめる
+                  </button>
+                </div>
+              )}
+              {!persistOk && (
+                <p className="text-[10px] mt-2" style={{ color: C.shu }}>
+                  ※ 保存が無効の間は、リセットは次回起動時に引き継がれません。
+                </p>
+              )}
+            </Band>
+
+            <Band label="保存について">
+              <p className="text-xs leading-relaxed">
+                現在の保存方式：
+                <b style={{ color: C.shu }}>
+                  {backend === "local"
+                    ? " この端末（ブラウザ）に保存"
+                    : backend === "account"
+                    ? " Claudeアカウントに保存"
+                    : " 一時保存のみ（閉じると消えます）"}
+                </b>
+              </p>
+              <p className="text-[11px] leading-relaxed mt-2" style={{ color: C.sub }}>
+                ホーム画面版（公開URL）はログインなしでこの端末に記録されます。端末・ブラウザ・Claudeアプリの間で記録は共有されません（下のバックアップで移せます）。Safariは長く開かないサイトの保存データを消すことがあるため、ときどきバックアップの書き出しをおすすめします。
+              </p>
+            </Band>
+
+            <Band label="バックアップ（書き出し／取り込み）">
+              <textarea
+                value={ioText}
+                onChange={(e) => setIoText(e.target.value)}
+                onFocus={(e) => e.target.select()}
+                rows={3}
+                placeholder="「書き出す」でここに表示／移行先ではここに貼り付けて「取り込む」"
+                className="w-full text-[11px] p-2 rounded resize-none"
+                style={{ background: C.paper, border: `1px solid ${C.line}`, color: C.ink }}
+              />
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={exportData}
+                  className="px-3 py-1.5 rounded text-xs font-bold tracking-widest"
+                  style={{ background: C.ink, color: C.paper }}
+                >
+                  書き出す
+                </button>
+                <button
+                  onClick={importData}
+                  className="px-3 py-1.5 rounded text-xs font-bold tracking-widest"
+                  style={{ border: `1.5px solid ${C.shu}`, color: C.shu }}
+                >
+                  取り込む
+                </button>
+              </div>
+              {ioMsg && (
+                <p className="text-[11px] mt-2" style={{ color: C.gold }}>
+                  {ioMsg}
+                </p>
+              )}
+            </Band>
+
+            <Band label="このアプリについて">
+              <p className="text-xs leading-relaxed" style={{ color: C.sub }}>
+                丸山敏雄『万人幸福の栞』十七ヶ条に基づく個人実践用アプリです。教えの要約とアクションは学習・実践の補助であり、原文は書籍をご参照ください。実践記録・メモは自動保存されます。
+                <br />
+                v1.1：午前0時の自動更新を強化／日付が進まない不具合を修正／メモの自動保存を追加。
+                <br />
+                v1.2：ログインなし（ホーム画面版）でも端末に保存／バックアップの書き出し・取り込みを追加。
+              </p>
+            </Band>
+          </div>
+        )}
+      </main>
+
+      {/* 下部ナビ */}
+      <nav
+        className="fixed bottom-0 left-0 right-0"
+        style={{ background: C.card, borderTop: `1px solid ${C.line}` }}
+      >
+        <div className="max-w-md mx-auto grid grid-cols-4">
+          {[
+            { k: "today", l: "今日", g: "本" },
+            { k: "list", l: "十七条", g: "条" },
+            { k: "log", l: "記録", g: "記" },
+            { k: "set", l: "設定", g: "設" },
+          ].map((t) => {
+            const on = tab === t.k;
+            return (
+              <button
+                key={t.k}
+                onClick={() => setTab(t.k)}
+                className="py-2.5 flex flex-col items-center gap-0.5"
+                style={{ color: on ? C.shu : C.sub }}
+              >
+                <span
+                  className="mincho flex items-center justify-center text-xs font-bold"
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 4,
+                    border: `1.5px solid ${on ? C.shu : C.line}`,
+                    background: on ? "rgba(178,58,42,.08)" : "transparent",
+                  }}
+                >
+                  {t.g}
+                </span>
+                <span className="text-[10px] tracking-widest font-bold">{t.l}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ height: "env(safe-area-inset-bottom)" }} />
+      </nav>
+    </div>
+  );
+}
